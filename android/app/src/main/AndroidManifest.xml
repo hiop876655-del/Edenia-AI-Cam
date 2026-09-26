@@ -5,13 +5,12 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="true" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
-    <uses-feature android:name="android.hardware.camera.burst" android:required="false" />
 
     <!-- Audio & Microphone Permissions -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
-    <!-- Storage & MediaStore (Android 10 to Android 15 compatible) -->
+    <!-- Storage & MediaStore (Android 10 to 15 compatible) -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
@@ -33,7 +32,6 @@
         android:label="AI Camera Pro"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:requestLegacyExternalStorage="true"
         android:hardwareAccelerated="true"
         android:largeHeap="true">
 
@@ -50,16 +48,9 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            
-            <!-- Handle Camera Intents from System Lockscreen -->
-            <intent-filter>
-                <action android:name="android.media.action.IMAGE_CAPTURE" />
-                <action android:name="android.media.action.STILL_IMAGE_CAMERA" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
         </activity>
 
-        <!-- Quick Settings Tile Service: Appears in System Notification Shade -->
+        <!-- Quick Settings Tile Service -->
         <service
             android:name=".TileService"
             android:label="AI Recorder"
@@ -71,13 +62,14 @@
             </intent-filter>
         </service>
 
-        <!-- Background Foreground Service for Screen Recording + AudioPlaybackCapture -->
+        <!-- Background Foreground Service for Screen Recording -->
         <service
             android:name=".ScreenRecordService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="mediaProjection|microphone" />
 
+        <!-- Mandatory Flutter V2 Embedding metadata -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
