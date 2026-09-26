@@ -1,0 +1,60 @@
+name: Build & Release AI Camera Pro APK
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Release APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.0'
+          channel: 'stable'
+
+      - name: Radical Clean & Native V2 Android Build
+        run: |
+          # 1. إنشاء مشروع فلاتر نظيف 100% في مجلد مؤقت
+          flutter create --org com.aicamera.recorder --project-name ai_camera_recorder_pro app_fresh
+          
+          # 2. استبدال كود الـ Dart والـ Pubspec بالكود الاحترافي الخاص بنا
+          rm -rf app_fresh/lib
+          cp -r lib app_fresh/
+          cp pubspec.yaml app_fresh/
+          
+          # 3. نسخ مجلد الموديلات والذكاء الاصطناعي assets إن وجد
+          if [ -d "assets" ]; then
+            cp -r assets app_fresh/
+          fi
+
+          # 4. إضافة صلاحيات الكاميرا والميكروفون وتسجيل الشاشة إلى المانيفيست الجديد النظيف
+          sed -i '/<application/i \    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />\n    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />' app_fresh/android/app/src/main/AndroidManifest.xml
+
+          # 5. بناء ملف الـ APK النقي
+          cd app_fresh
+          flutter pub get
+          flutter build apk --release --no-tree-shake-icons
+          
+          # 6. نقل ملف الـ APK النهائي إلى مجلد الرفع
+          mkdir -p ../build_output
+          cp build/app/outputs/flutter-apk/app-release.apk ../build_output/AI-Camera-Pro-Release.apk
+
+      - name: Upload Universal APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AI-Camera-Pro-Release-APK
+          path: build_output/AI-Camera-Pro-Release.apk
