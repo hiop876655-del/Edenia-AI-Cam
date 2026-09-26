@@ -28,11 +28,15 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Recreate Clean Native Android Project
+        run: |
+          flutter create . --platforms=android --org com.aicamera.recorder
+
       - name: Install Dependencies
-        run: flutter pub get --no-example
+        run: flutter pub get
 
       - name: Build Release APK
-        run: flutter build apk --release --no-tree-shake-icons
+        run: flutter build apk --release
 
       - name: Upload Universal APK Artifact
         uses: actions/upload-artifact@v4
