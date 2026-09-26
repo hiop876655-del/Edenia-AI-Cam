@@ -26,35 +26,36 @@ jobs:
           flutter-version: '3.22.0'
           channel: 'stable'
 
-      - name: Radical Clean & Native V2 Android Build
+      - name: Auto-Fix V2 Android Structure
         run: |
-          # 1. إنشاء مشروع فلاتر نظيف 100% في مجلد مؤقت
-          flutter create --org com.aicamera.recorder --project-name ai_camera_recorder_pro app_fresh
+          # 1. إزالة أي ملفات أندرويد قديمة تسبب التعارض
+          rm -rf android
           
-          # 2. استبدال كود الـ Dart والـ Pubspec بالكود الاحترافي الخاص بنا
-          rm -rf app_fresh/lib
-          cp -r lib app_fresh/
-          cp pubspec.yaml app_fresh/
-          
-          # 3. نسخ مجلد الموديلات والذكاء الاصطناعي assets إن وجد
-          if [ -d "assets" ]; then
-            cp -r assets app_fresh/
-          fi
+          # 2. إنشاء مجلد أندرويد الرسمي V2 المتطابق تماماً مع اسم مشروعك
+          flutter create . --platforms=android --org com.example
 
-          # 4. إضافة صلاحيات الكاميرا والميكروفون وتسجيل الشاشة إلى المانيفيست الجديد النظيف
-          sed -i '/<application/i \    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />\n    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />' app_fresh/android/app/src/main/AndroidManifest.xml
+          # 3. إنشاء كلاس MainActivity الرسمي المعتمد V2
+          mkdir -p android/app/src/main/kotlin/com/example/edenia_ai_cam
+          cat << 'EOF' > android/app/src/main/kotlin/com/example/edenia_ai_cam/MainActivity.kt
+          package com.example.edenia_ai_cam
 
-          # 5. بناء ملف الـ APK النقي
-          cd app_fresh
-          flutter pub get
-          flutter build apk --release --no-tree-shake-icons
-          
-          # 6. نقل ملف الـ APK النهائي إلى مجلد الرفع
-          mkdir -p ../build_output
-          cp build/app/outputs/flutter-apk/app-release.apk ../build_output/AI-Camera-Pro-Release.apk
+          import io.flutter.embedding.android.FlutterActivity
+
+          class MainActivity: FlutterActivity() {
+          }
+          EOF
+
+          # 4. تحديث الـ minSdkVersion في gradle ليدعم كافة ميزات الكاميرا والذكاء الاصطناعي
+          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle 2>/dev/null || true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build Release APK
+        run: flutter build apk --release --no-tree-shake-icons
 
       - name: Upload Universal APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: AI-Camera-Pro-Release-APK
-          path: build_output/AI-Camera-Pro-Release.apk
+          path: build/app/outputs/flutter-apk/app-release.apk
