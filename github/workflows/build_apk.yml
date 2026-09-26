@@ -19,30 +19,18 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: 'gradle'
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.0'
+          flutter-version: '3.24.0'
           channel: 'stable'
-          cache: true
+          cache: false
 
-      - name: Auto-Migrate to V2 Flutter Embedding
+      - name: Clean & Prepare V2 Native Android
         run: |
-          mkdir -p android/app/src/main/kotlin/com/aicamera/recorder
-          cat << 'EOF' > android/app/src/main/kotlin/com/aicamera/recorder/MainActivity.kt
-          package com.aicamera.recorder
-
-          import io.flutter.embedding.android.FlutterActivity
-
-          class MainActivity: FlutterActivity() {
-          }
-          EOF
-          find android/app/src/main/java -type f -name "MainActivity.java" -delete 2>/dev/null || true
-
-      - name: Install Dependencies
-        run: flutter pub get
+          rm -rf android
+          flutter create . --platforms=android --org com.aicamera.recorder --project-name ai_camera_recorder_pro
 
       - name: Build Release APK
         run: flutter build apk --release --no-tree-shake-icons
