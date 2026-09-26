@@ -28,14 +28,18 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Force Clean V2 Android Scaffold
+      - name: Auto-Migrate to V2 Flutter Embedding
         run: |
-          rm -rf android
-          flutter create . --platforms=android --org com.aicamera.recorder
+          mkdir -p android/app/src/main/kotlin/com/aicamera/recorder
+          cat << 'EOF' > android/app/src/main/kotlin/com/aicamera/recorder/MainActivity.kt
+          package com.aicamera.recorder
 
-      - name: Inject Camera & Audio Permissions
-        run: |
-          sed -i '/<application/i \    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />\n    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />' android/app/src/main/AndroidManifest.xml
+          import io.flutter.embedding.android.FlutterActivity
+
+          class MainActivity: FlutterActivity() {
+          }
+          EOF
+          find android/app/src/main/java -type f -name "MainActivity.java" -delete 2>/dev/null || true
 
       - name: Install Dependencies
         run: flutter pub get
