@@ -6,7 +6,6 @@ import android.content.Intent
 import android.media.projection.MediaProjectionManager
 import android.net.Uri
 import android.os.Build
-import android.os.Bundle
 import android.provider.Settings
 import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
@@ -15,7 +14,6 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity: FlutterActivity() {
     private val CHANNEL_RECORDER = "com.aicamera.recorder/screen"
-    private val CHANNEL_MEDIASTORE = "com.aicamera.recorder/mediastore"
     private val CHANNEL_OVERLAY = "com.aicamera.recorder/overlay"
     
     private val REQUEST_MEDIA_PROJECTION = 1001
@@ -26,7 +24,6 @@ class MainActivity: FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         mediaProjectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
 
-        // MethodChannel for Screen Recording
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL_RECORDER).setMethodCallHandler { call, result ->
             when (call.method) {
                 "requestScreenCapturePermission" -> {
@@ -63,19 +60,24 @@ class MainActivity: FlutterActivity() {
             }
         }
 
-        // Overlay Permission for Floating Camera Bubble
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL_OVERLAY).setMethodCallHandler { call, result ->
             when (call.method) {
                 "checkOverlayPermission" -> {
-                    val hasPerm = Settings.canDrawOverlays(this)
+                    val hasPerm = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        Settings.canDrawOverlays(this)
+                    } else {
+                        true
+                    }
                     result.success(hasPerm)
                 }
                 "requestOverlayPermission" -> {
-                    val intent = Intent(
-                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package:$packageName")
-                    )
-                    startActivity(intent)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        val intent = Intent(
+                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            Uri.parse("package:$packageName")
+                        )
+                        startActivity(intent)
+                    }
                     result.success(true)
                 }
                 else -> result.notImplemented()
