@@ -26,33 +26,18 @@ jobs:
           flutter-version: '3.22.0'
           channel: 'stable'
 
-      - name: Auto-Fix V2 Android Structure
+      - name: Complete Clean & Rebuild Android Engine
         run: |
-          # 1. إزالة أي ملفات أندرويد قديمة تسبب التعارض
           rm -rf android
-          
-          # 2. إنشاء مجلد أندرويد الرسمي V2 المتطابق تماماً مع اسم مشروعك
-          flutter create . --platforms=android --org com.example
-
-          # 3. إنشاء كلاس MainActivity الرسمي المعتمد V2
-          mkdir -p android/app/src/main/kotlin/com/example/edenia_ai_cam
-          cat << 'EOF' > android/app/src/main/kotlin/com/example/edenia_ai_cam/MainActivity.kt
-          package com.example.edenia_ai_cam
-
-          import io.flutter.embedding.android.FlutterActivity
-
-          class MainActivity: FlutterActivity() {
-          }
-          EOF
-
-          # 4. تحديث الـ minSdkVersion في gradle ليدعم كافة ميزات الكاميرا والذكاء الاصطناعي
-          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle 2>/dev/null || true
-
-      - name: Install Dependencies
-        run: flutter pub get
+          flutter create . --platforms=android --org com.example.edenia_ai_cam
+          cd android
+          ./gradlew clean || true
+          cd ..
 
       - name: Build Release APK
-        run: flutter build apk --release --no-tree-shake-icons
+        run: |
+          flutter pub get
+          flutter build apk --release --no-tree-shake-icons
 
       - name: Upload Universal APK Artifact
         uses: actions/upload-artifact@v4
