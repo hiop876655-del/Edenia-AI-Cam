@@ -28,15 +28,20 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Recreate Clean Native Android Project
+      - name: Force Clean V2 Android Scaffold
         run: |
+          rm -rf android
           flutter create . --platforms=android --org com.aicamera.recorder
+
+      - name: Inject Camera & Audio Permissions
+        run: |
+          sed -i '/<application/i \    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />\n    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />' android/app/src/main/AndroidManifest.xml
 
       - name: Install Dependencies
         run: flutter pub get
 
       - name: Build Release APK
-        run: flutter build apk --release
+        run: flutter build apk --release --no-tree-shake-icons
 
       - name: Upload Universal APK Artifact
         uses: actions/upload-artifact@v4
